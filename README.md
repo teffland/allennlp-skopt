@@ -7,23 +7,14 @@ tuning for models. This small package provides a wrapper around allennlp trainin
 calls that can be plugged in to skopt to perform bayesian hyperparameter search.
 
 It combines the flexibility of allennlp config files and overrides with the power
-of scikit-optimize sequential model-based optimization. All you need is
-to specify a search space config file which mirroring a base allennlp train config.
+of scikit-optimize sequential model-based optimization. All you need to do is
+provide a base allennlp training config file together with a search space config file
+(this library).
 
-Further we've defined a simple but flexible markup language for specifying the
+This search space config file is lightly marked-up subset of the base config.
+We provide a simple but flexible markup language for specifying the
 dimensions of the search (along with some other features below.)
 
-
-# TODO:
-* [X] Add evaluate on test for best validation model
-* [ ] Pipe actual allennlp run logs to separate files.
-* [X] Remove all weights and models except the best.th and model.tar.gz from the
- best held out model, do this live by tracking best values so far -- significant space decrease.
- put this in a callback so we can do it on the fly.
-* [X] Save the results object and save plots
-  * [X] Plot convergence
-  * [X] Plot objective
-  * [X] Plot samples
 
 # Features
 * Bayesian hyperparam search just by specifying a search-space config file -- better models with fewer runs.
@@ -64,11 +55,11 @@ or the values are strings or special types (null and bools), then it's interpret
 
 For example we may have:
 
-```json
+```js
     "trainer": {
       "optimizer": {
-        "type": ["sgd", "adam", "adamw"],  # categorical choices of optimizer
-        "lr": [1e-5,1e-3],                 # real valued range
+        "type": ["sgd", "adam", "adamw"],  // categorical choices of optimizer
+        "lr": [1e-5,1e-3],                 // real valued range
         ""
       }
     }
@@ -80,11 +71,11 @@ cast to strings).
 
 For example we might have:
 
-```json
+```js
     "trainer": {
       "optimizer": {
         "type": ["sgd", "adam", "adamw"],
-        "lr": [1e-3,1e-5,1e-5]  # 1e-3 and 1e-5 are only choices
+        "lr": [1e-3,1e-5,1e-5]             // 1e-3 and 1e-5 are only choices
       }
     }
 ```
@@ -95,22 +86,22 @@ Singleton options can be passed as constants, not wrapped in lists. In this case
 this param will override the base config and be included in the serialization string
 but will not actually be varied over/modeled by the hp minimizer.
 
-```json
+```js
     "trainer": {
       "optimizer": {
-        "type": "sgd",          # always override to "sgd", don't actually model.
-        "momentum": [0.9,0.99]  
+        "type": "sgd",          // always override to "sgd", don't actually model.
+        "momentum": [0.9,0.99]
       }
     }
 ```
 
 Additionally, length-one lists are unwrapped, which allows for lists to be passed as constants:
 
-```json
+```js
     "m": {
       "optimizer": {
         "type": "adam",          
-        "betas": [[0.9,0.99]]   # these are kept constant as [0.9,0.99]
+        "betas": [[0.9,0.99]]   // these are kept constant as [0.9,0.99]
       }
     }
 ```
@@ -131,13 +122,13 @@ the parameter can be conditionally specified by prepending the key with the sign
 
  This is a powerful tool and now we can do things like:
 
-```json
+```js
     "trainer": {
       "optimizer": {
         "type": ["sgd", "adam", "adamw"],
-        "sgd__momentum": [0.9,0.99]          # this is only passed to sgd
-        "adamw__weight_decay": [1e-4,1e-2]   # this is only passed to the adamw
-        "adam|adamw__epsilon": [1e-9, 1e-7]  # this is only passed to the adam and adamw
+        "sgd__momentum": [0.9,0.99],          // this is only passed to sgd
+        "adamw__weight_decay": [1e-4,1e-2],   // this is only passed to the adamw
+        "adam|adamw__epsilon": [1e-9, 1e-7]   // this is only passed to the adam and adamw
       }
     }
 ```
@@ -147,11 +138,11 @@ arguments which are unvarying but only apply to a subset of the varying types.
 
 For example:
 
-```json
+```js
     "trainer": {
       "optimizer": {
         "type": ["sgd", "adam", "adamw"],
-        "adam__eps": 1e-8                    # this is only passed to adam but left constant
+        "adam__eps": 1e-8                    // this is only passed to adam but left constant
       }
     }
 ```
@@ -166,16 +157,16 @@ dictionary as input.
 For example. maybe we want the learning rate schedule to depend on other optimizer parameters,
 such as the number of epochs, which itself is part of the hyperparamter search:
 
-```json
+```js
     "trainer": {
-      "num_epochs": [5,50],   # this will vary
+      "num_epochs": [5,50],   // this will vary
       "optimizer": {
         "type": "sgd",
         "lr": 1e-3
       }
       "learning_rate_scheduler": {
         "type": "step",
-        # this deterministically defines gamma to anneal the learning rate to 0 over the course of training
+        // this deterministically defines gamma to anneal the learning rate to 0 over the course of training
         "gamma": "lambda c:(c['trainer']['optimizer']['lr']/c['trainer']['num_epochs']"
       }
     }
@@ -186,7 +177,7 @@ such as those specified in the original base config.
 
 For example, if the _base_ config file in the above example had:
 
-```json
+```js
     "trainer": {
       "optimizer": {
         "type": "sgd",
@@ -197,12 +188,12 @@ For example, if the _base_ config file in the above example had:
 
 then we may be tempted to write the search space file as:
 
-```json
+```js
     "trainer": {
-      "num_epochs": [5,50],   # this will vary
+      "num_epochs": [5,50],   // this will vary
       "learning_rate_scheduler": {
         "type": "step",
-        # this breaks because ['optimizer']['lr'] isnt in the search space file
+        // this breaks because ['optimizer']['lr'] isnt in the search space file
         "gamma": "lambda c:(c['trainer']['optimizer']['lr']/c['trainer']['num_epochs']"
       }
     }
@@ -225,21 +216,21 @@ These can be specified for dimensions using the following special reserved suffi
 
 One example (and common use-case) is when we want to sample in the log-domain:
 
-```json
+```js
   "trainer": {
     "optimizer": {
       "lr": [1e-6,1e-3],
-      "lr__PRIOR": "log-uniform"  # samples base10 magnitude of learning rate uniformly
+      "lr__PRIOR": "log-uniform"  // samples base10 magnitude of learning rate uniformly
     }
   }
 ```
 
 Or for batch sizes:
-```json
+```js
   "data_loader": {
     "batch_size": [4,64],
-    "batch_size__BASE": 2               # samples base2 magnitude of learning rate uniformly
-    "batch_size__PRIOR": "log-uniform"  #
+    "batch_size__BASE": 2               // samples base2 magnitude of learning rate uniformly
+    "batch_size__PRIOR": "log-uniform"  //
   }
 ```
 
@@ -262,7 +253,7 @@ a colon and the shorthand, as in `"<super_verbose_param_name>:<shrt_name>"`.
 
 An example helps. Say we have:
 
-```json
+```js
   "trainer": {
     "optimizer": {
       "type": ["sgd", "adam"],
@@ -281,10 +272,10 @@ would be the
 which is ridicuously long. For realistic searches it can easily exceed the max unix file name length.
 With some simple shorthand annotations though, we can modify our config:
 
-```json
-  "trainer:t": {                     # shorthand 'trainer' to 't'
-    "optimizer:o": {                 # likewise
-      "type:mode": ["sgd", "adam"],  # can be used for just renaming if that's your thing
+```js
+  "trainer:t": {                     // shorthand 'trainer' to 't'
+    "optimizer:o": {                 // likewise
+      "type:mode": ["sgd", "adam"],  // can be used for just renaming if that's your thing
       "lr": [1e-6,1e-3],
     }
   }
@@ -300,10 +291,10 @@ is the empty string, then we omit that branch of the config tree in the name alt
 
 Continuing with the above example:
 
-```json
+```js
   "trainer:t": {                     
-    "optimizer:": {                 # will not be in the nested name
-      "type:": "sgd",               # whole branch wont be in the name
+    "optimizer:": {                 // will not be in the nested name
+      "type:": "sgd",               // whole branch wont be in the name
       "lr": [e-6,1e-3],
     }
   }
@@ -328,4 +319,85 @@ calling it `<config_str>`, the full name is then:
 
 ### Running the optimizer
 
-Once you've setup your  # TODO
+Once you've setup your search file, you optimize it with the following signature:
+
+```bash
+allenopt.optimize
+
+usage: optimize.py [-h] [--include-package INCLUDE_PACKAGE]
+                   [-s SERIALIZATION_DIR] [-e EVALUATE_ON_TEST] [-n N_CALLS]
+                   [-r RANDOM_SEED] [-m MODE]
+                   [--n-random-starts N_RANDOM_STARTS] [--xi XI]
+                   [--kappa KAPPA] [--no-delete-worse]
+                   base_config_path search_config_path
+```
+
+And that's all you need to do! Now the script will run the specified skopt
+procedure using allennlp by searching in your provided search space file.
+It will create a bunch of seriralization directories within the base `-s <serialzation_dir>`.
+You can additionally have the best found model (based on held-out validation metric in allennlp base config)
+evaluate on a test set with `-e`.
+
+An example command, where we run a gaussian process optimization for some given setup,
+with 20 trials would be:
+
+```bash
+allenopt.optimize\
+ --include-package <my_allennlp_package>\
+ -s <a directory path to save to>\
+ -n 20\
+ -m gp\
+ -r 42\
+ my_base_allennlp_train_config.jsonnet\
+ my_search_config.jsonnet
+```
+
+Check out the [examples](examples) for some complete examples.
+
+#### Command Arg Details
+```bash
+allenopt.optimize -h
+
+Optimize allennlp model hyperparams with random, gaussian process, or tree-
+based process
+
+positional arguments:
+  base_config_path      Base config path
+  search_config_path    Search space config path
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --include-package INCLUDE_PACKAGE
+                        Source package to pass to allennlp
+  -s SERIALIZATION_DIR, --serialization-dir SERIALIZATION_DIR
+                        Base directory to save trials in.
+  -e EVALUATE_ON_TEST, --evaluate-on-test EVALUATE_ON_TEST
+                        If provided, we will evaluate the best model on this
+                        test set.
+  -n N_CALLS, --n-calls N_CALLS
+                        Number of trials
+  -r RANDOM_SEED, --random-seed RANDOM_SEED
+                        Set a random state.
+  -m {random,tree,gp}, --mode {random,tree,gp}
+                        Minimizer type. 'gp' is gaussian process, 'random' is
+                        random search, 'tree' is extra trees search.
+  --n-random-starts N_RANDOM_STARTS
+                        If provided, seed process with n random function evals
+                        in addition to the defaul x0
+  --xi XI               Exploration/expoitation param
+  --kappa KAPPA         Exploration/expoitation param
+  --no-delete-worse     By default we delete heavy files for worse trials as
+                        we go. This disables that.
+```
+
+
+# TODO:
+* [X] Add evaluate on test for best validation model
+* [ ] Pipe actual allennlp run logs to separate files.
+* [X] Remove all weights and models except the best.th and model.tar.gz from the
+ best held out model, do this live by tracking best values so far -- significant space decrease.
+ put this in a callback so we can do it on the fly.
+* [X] Save the results object and save plots
+  * [X] Plot convergence
+  * [X] Plot objective
+  * [X] Plot samples
