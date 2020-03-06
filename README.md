@@ -33,7 +33,14 @@ A hyperparam search has two components:
 1. An allennlp base config jsonnet file, stripped down to all non-varying hyperparameters (standard allennlp use)
 2. A hp search base config jsonnet file, specifynig the search space for any varying hyperparameters (this package)
 
-
+### Table of Contents
+1. [Search Dimensions](#search-dimensions)
+2. [Constant Dimensions](#constant-dimensions)
+3. [Conditional Dimensions](#conditional-dimensions)
+4. [Deterministic Dimensions](#deterministic-dimensions)
+5. [Controlling Search Sample Prior](#fine-grained-control-of-the-dimensions)
+6. [Sample Naming and Parameter Shorthands](#sample-naming-and-parameter-shorthanding)
+7. [Running the Optimizer](#running-the-optimizer)
 
 ## Specifying the search space
 
@@ -46,8 +53,7 @@ Hyperparam search configuration files should mirror the structure of the base
 config, stripped down only to the fields which should be explored (and any others needed
 for allennlp's --override argument as constants, more on this later.)
 
-### API Table of Contents
-1. [Search Dimensions](#search_dimensions)
+
 
 ### Search Dimensions
 
