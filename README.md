@@ -38,20 +38,19 @@ A hyperparam search has two components:
 Hyperparameter search on complex architectures and optimization setups can be difficult
 to specify, often requiring bespoke scripts. We instead leverage the flexibility
 and utility of allennlp's config files with an extended syntax that allows specification
-of conditional logic and namespace shortcutting.
+of search dimension ranges and choices.
 
-### Syntax
 
 Hyperparam search configuration files should mirror the structure of the base
-config stripped only to the fields which should be explored and any others needed
-for allennlp's --override argument as constants.
+config, stripped down only to the fields which should be explored (and any others needed
+for allennlp's --override argument as constants, more on this later.)
 
-#### Search Dimensions
+### Search Dimensions
 
 The fields we want searched over should be wrapped in a list, giving either the range
 (for int and real dimensions) or choices (categorical). If the list is two numerical
 values, it's interpreted as a range (order doesn't matter). If it's three or more,
-or the values are strings or special types (null and bools), then it's interpreted as categorical.
+or the values are strings or special types (`null`, `true`, `false`), then it's interpreted as categorical.
 
 For example we may have:
 
@@ -60,7 +59,6 @@ For example we may have:
       "optimizer": {
         "type": ["sgd", "adam", "adamw"],  // categorical choices of optimizer
         "lr": [1e-5,1e-3],                 // real valued range
-        ""
       }
     }
 ```
@@ -80,7 +78,7 @@ For example we might have:
     }
 ```
 
-#### Constant Dimensions
+### Constant Dimensions
 
 Singleton options can be passed as constants, not wrapped in lists. In this case,
 this param will override the base config and be included in the serialization string
@@ -108,7 +106,7 @@ Additionally, length-one lists are unwrapped, which allows for lists to be passe
 
 This is especially useful when specifying type-specific settings via conditional dimensions, which leads us too...
 
-#### Conditional Dimensions
+### Conditional Dimensions
 
 Sometimes we want to search over multiple "type"s of objects, such as different
 optimizers, and these can (and often do) have different parameters.  Understandably,
@@ -147,7 +145,7 @@ For example:
     }
 ```
 
-#### Deterministic Dimensions
+### Deterministic Dimensions
 
 Finally, sometimes you have dimensions that should only vary deterministically
 with other dimensions you are searching over.  We solve this using "lambda" dimensions
@@ -203,7 +201,7 @@ then we may be tempted to write the search space file as:
 order, so chaining them together isn't possible. Not sure it's useful (would be kind of cool though I guess.)
 
 
-#### Fine-grained Control of the Dimensions
+### Fine-grained Control of the Dimensions
 
 `skopt` offers some additional, more fine-grained control of the search dimensions.
 Currently these transformations of the space before sampling, prior distributions on the sample space,
@@ -238,7 +236,7 @@ Or for batch sizes:
 they are modifying, including any shorthand annotations described in the following section.
 
 
-#### Sample Naming and Parameter Shorthanding
+### Sample Naming and Parameter Shorthanding
 
 When actually running the experiments, we have to give them names so allennlp
 can save them. We've elected to do this by encoding the sampled configuration
@@ -317,7 +315,7 @@ calling it `<config_str>`, the full name is then:
 ```
 
 
-### Running the optimizer
+## Running the optimizer
 
 Once you've setup your search file, you optimize it with the following signature:
 
@@ -354,7 +352,7 @@ allenopt.optimize\
 
 Check out the [examples](examples) for some complete examples.
 
-#### Command Arg Details
+### Command Arg Details
 ```bash
 allenopt.optimize -h
 
