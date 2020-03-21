@@ -152,7 +152,7 @@ def setup(args):
         trial_paths[trial_num] = trial_path
 
         # Construct the overrides string
-        processed_overrides = format_overrides(overrides, lambdas, arg_overrides)
+        processed_overrides = format_overrides(overrides, lambdas, base_config, arg_overrides)
         print(f'Sampled config: {json.dumps(processed_overrides, indent=2)}')
         override_str = json.dumps(processed_overrides, indent=None)
 

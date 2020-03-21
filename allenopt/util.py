@@ -197,15 +197,17 @@ def restrict_type_overrides(overrides, flat_search_config):
 
     return overrides
 
-def format_overrides(overrides, lambdas, arg_overrides):
+def format_overrides(overrides, lambdas, base_config, arg_overrides):
     """ Apply arg overrides and unflatten, then apply lambda dimensions
 
-    (Note: We actually do it twice since the lambdas use flattened keys)
+    (Note: We actually do it twice since the lambdas are indexed with flat keys)
     """
-    nested_overrides = with_fallback(arg_overrides, cleanup_markup(unflatten(overrides)))
+    # Fill samped overrides with base config, then fill with arg overrides
+    format_ = lambda overrides:with_fallback(arg_overrides, with_fallback(cleanup_markup(unflatten(overrides)), base_config))
+    nested_overrides = format_(overrides)
     for k,f in lambdas.items():
         overrides[k] = f(nested_overrides)
-    return with_fallback(arg_overrides, cleanup_markup(unflatten(overrides)))
+    return format_(overrides)
 
 
 def construct_trial_name(overrides, shorthands, trial_num):
