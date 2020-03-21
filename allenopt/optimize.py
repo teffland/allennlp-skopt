@@ -15,6 +15,7 @@ import skopt
 from skopt.space.space import Categorical, Integer, Real, Space
 from skopt.utils import normalize_dimensions
 
+from allennlp.common.params import parse_overrides, with_fallback
 from allenopt.util import *
 from allenopt.plot import *
 
@@ -26,6 +27,7 @@ def parse_args(args=[]):
     parser.add_argument('search_config_path', help="Search space config path")
     parser.add_argument('--include-package', help='Source package to pass to allennlp')
     parser.add_argument('-s', '--serialization-dir', type=str, help="Base directory to save trials in." )
+    parser.add_argument('-o', '--overrides', type=str, default=None, help="If provided, we will override the base config with these")
     parser.add_argument('-e', '--evaluate-on-test', type=str, default=None, help="If provided, we will evaluate the best model on this test set.")
     parser.add_argument('-n', '--n-calls', type=int, default=10, help="Number of trials")
     parser.add_argument('-r', '--random-seed', type=int, default=None, help="Set a random state.")
@@ -105,6 +107,10 @@ def setup(args):
     """
     base_config = json.loads(_jsonnet.evaluate_file(args.base_config_path))
     search_config = json.loads(_jsonnet.evaluate_file(args.search_config_path))
+
+    # Override the base config with any arg overrides
+    overrides = parse_overrides(args.overrides)
+    base_config = with_fallback(preferred=overrides, fallback=base_config)
 
     # Flatten configs and get shorthand mappings
     flat_base_config = flatten(base_config)
