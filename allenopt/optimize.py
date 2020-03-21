@@ -143,7 +143,6 @@ def setup(args):
         overrides = skopt.utils.point_asdict(search_space, x)
         overrides = fill_search_constants(overrides, flat_search_config)
         overrides = restrict_type_overrides(overrides, flat_search_config)
-        overrides = with_fallback(preferred=arg_overrides, fallback=overrides)
 
         # print(f'Overrides after fill and restrict: {json.dumps(overrides, indent=2)}')
 
