@@ -160,55 +160,38 @@ For example:
 Finally, sometimes you have dimensions that should only vary deterministically
 with other dimensions you are searching over.  We solve this using "lambda" dimensions
 specified in strings. The specified function will be given the sampled search configuration
-dictionary as input.
+dictionary, filled with the base config as input.
 
-For example. maybe we want the learning rate schedule to depend on other optimizer parameters,
-such as the number of epochs, which itself is part of the hyperparamter search:
+For example, maybe we want the learning rate schedule to depend on other optimizer parameters,
+such as the number of epochs, which itself is part of the hyperparameter search.
 
-```js
-    "trainer": {
-      "num_epochs": [5,50],   // this will vary
-      "optimizer": {
-        "type": "sgd",
-        "lr": 1e-3
-      }
-      "learning_rate_scheduler": {
-        "type": "step",
-        // this deterministically defines gamma to anneal the learning rate to 0 over the course of training
-        "gamma": "lambda c:(c['trainer']['optimizer']['lr']/c['trainer']['num_epochs']"
-      }
-    }
-```
-
-**Note:** this dictionary does NOT include any parameter not specified in the _search space_ file,
-such as those specified in the original base config.
-
-For example, if the _base_ config file in the above example had:
+If the _base_ config file has:
 
 ```js
     "trainer": {
       "optimizer": {
         "type": "sgd",
-        "lr": 1e-3
+        "lr": 1e-3  // this is constant
       }
     }
 ```
 
-then we may be tempted to write the search space file as:
+and the search space file has:
 
 ```js
     "trainer": {
       "num_epochs": [5,50],   // this will vary
       "learning_rate_scheduler": {
         "type": "step",
-        // this breaks because ['optimizer']['lr'] isnt in the search space file
-        "gamma": "lambda c:(c['trainer']['optimizer']['lr']/c['trainer']['num_epochs']"
+        "gamma": "lambda c:(c['trainer']['optimizer']['lr']/c['trainer']['num_epochs']"  // this works
       }
     }
 ```
+
+**Note:** these lambda functions have access to the standard python `math` library
 
 **Sidenote:** As of now, I think lambda functions are executed in a non-deterministic
-order, so chaining them together isn't possible. Not sure it's useful (would be kind of cool though I guess.)
+order, so chaining them together isn't possible. Not sure that'd be useful (but could be kind of cool I guess...)
 
 
 ### Fine-grained Control of the Dimensions
