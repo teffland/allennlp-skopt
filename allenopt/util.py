@@ -11,6 +11,8 @@ import skopt
 from skopt.space.space import Categorical, Integer, Real, Space
 from skopt.utils import normalize_dimensions
 
+from allennlp.common.params import with_fallback
+
 
 ROUTE_STR = '.'
 RESERVED_SUFFIXES = { '__PRIOR', '__TRANSFORM', '__BASE' }

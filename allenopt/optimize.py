@@ -15,7 +15,7 @@ import skopt
 from skopt.space.space import Categorical, Integer, Real, Space
 from skopt.utils import normalize_dimensions
 
-from allennlp.common.params import parse_overrides, with_fallback
+from allennlp.common.params import parse_overrides
 from allenopt.util import *
 from allenopt.plot import *
 
