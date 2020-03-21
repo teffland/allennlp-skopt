@@ -211,7 +211,7 @@ def format_overrides(overrides, lambdas, arg_overrides):
 def construct_trial_name(overrides, shorthands, trial_num):
     """ Get a unique string for the hp configuration, omitting some special values.
     """
-    date_str = datetime.strftime(datetime.now(), '%m-%d-%H:%M')
+    date_str = datetime.strftime(datetime.now(), '%m-%d,%H:%M')
     s = f'{date_str}_hp-trial-{trial_num}_'
     keep = lambda k,v:not any(k.endswith(s) for s in RESERVED_SUFFIXES) and not str(v).startswith('lambda')
     str_format = lambda v:v.replace('__','-')
