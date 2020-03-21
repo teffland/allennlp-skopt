@@ -203,6 +203,8 @@ def format_overrides(overrides, lambdas, arg_overrides):
     (Note: We actually do it twice since the lambdas use flattened keys)
     """
     nested_overrides = with_fallback(arg_overrides, cleanup_markup(unflatten(overrides)))
+    print('FORMAT OVERRIDES', overrides)
+    print('FORMAT_NESTED_OVERRIDES', nested_overrides)
     for k,f in lambdas.items():
         overrides[k] = f(nested_overrides)
     return with_fallback(arg_overrides, cleanup_markup(unflatten(overrides)))
