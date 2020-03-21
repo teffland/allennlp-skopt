@@ -12,7 +12,7 @@ from skopt.space.space import Categorical, Integer, Real, Space
 from skopt.utils import normalize_dimensions
 
 
-ROUTE_STR = '->'
+ROUTE_STR = '.'
 RESERVED_SUFFIXES = { '__PRIOR', '__TRANSFORM', '__BASE' }
 
 import sys
@@ -195,16 +195,15 @@ def restrict_type_overrides(overrides, flat_search_config):
 
     return overrides
 
-def format_overrides(overrides, lambdas):
-    """ Apply lambda functions to intermediate overrides, then unflatten them
-    and remove any markup/unescape values.
+def format_overrides(overrides, lambdas, arg_overrides):
+    """ Apply arg overrides and unflatten, then apply lambda dimensions
+
+    (Note: We actually do it twice since the lambdas use flattened keys)
     """
-    nested_overrides = cleanup_markup(unflatten(overrides))
+    nested_overrides = with_fallback(cleanup_markup(unflatten(overrides)), arg_overrides)
     for k,f in lambdas.items():
         overrides[k] = f(nested_overrides)
-    nested_overrides = unflatten(overrides)
-    unescaped_overrides = cleanup_markup(nested_overrides)
-    return unescaped_overrides
+    return with_fallback(cleanup_markup(unflatten(overrides)), arg_overrides)
 
 
 def construct_trial_name(overrides, shorthands, trial_num):

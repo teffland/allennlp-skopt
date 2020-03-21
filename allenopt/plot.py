@@ -2,6 +2,8 @@ import os
 import matplotlib.pyplot as plt
 from skopt.plots import plot_convergence, plot_evaluations, plot_objective
 
+from allenopt.util import ROUTE_STR
+
 def plot_results(base_dir, results):
     """ Plot convergence, evaluations, and surrogate objectives to files.
     """
@@ -32,12 +34,12 @@ def reformat_plot(axs):
         # Make all the left column axis y labels multiline horizontal right aligned
         if i > 0:
             ax = axs[i,0]
-            ax.set_ylabel(clean_nested_key(ax.get_ylabel()).replace('->','\n.'), rotation=0, ha='right')
+            ax.set_ylabel(clean_nested_key(ax.get_ylabel()).replace(ROUTE_STR,'\n.'), rotation=0, ha='right')
 
         # Make all the bottom row axis x labels multiline horizontal center aligned
         ax = axs[n-1,i]
-        ax.set_xlabel(clean_nested_key(ax.get_xlabel()).replace('->','\n.'), rotation=0, ha='center')
+        ax.set_xlabel(clean_nested_key(ax.get_xlabel()).replace(ROUTE_STR,'\n.'), rotation=0, ha='center')
 
         # Make all diagonal axis x labels multiline horizontal right aligned
         ax = axs[i,i]
-        ax.set_xlabel(clean_nested_key(ax.get_xlabel()).replace('->','\n.'), rotation=0, ha='left')
+        ax.set_xlabel(clean_nested_key(ax.get_xlabel()).replace(ROUTE_STR,'\n.'), rotation=0, ha='left')

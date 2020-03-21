@@ -107,10 +107,7 @@ def setup(args):
     """
     base_config = json.loads(_jsonnet.evaluate_file(args.base_config_path))
     search_config = json.loads(_jsonnet.evaluate_file(args.search_config_path))
-
-    # Override the base config with any arg overrides
-    overrides = parse_overrides(args.overrides)
-    base_config = with_fallback(preferred=overrides, fallback=base_config)
+    arg_overrides = parse_overrides(args.overrides)
 
     # Flatten configs and get shorthand mappings
     flat_base_config = flatten(base_config)
@@ -146,8 +143,9 @@ def setup(args):
         overrides = skopt.utils.point_asdict(search_space, x)
         overrides = fill_search_constants(overrides, flat_search_config)
         overrides = restrict_type_overrides(overrides, flat_search_config)
+        overrides = with_fallback(preferred=arg_overrides, fallback=overrides)
 
-        print(f'Overrides after fill and restrict: {json.dumps(overrides, indent=2)}')
+        # print(f'Overrides after fill and restrict: {json.dumps(overrides, indent=2)}')
 
         # Construct the trial serialization path
         trial_str = construct_trial_name(overrides, shorthands, trial_num)
@@ -155,8 +153,8 @@ def setup(args):
         trial_paths[trial_num] = trial_path
 
         # Construct the overrides string
-        processed_overrides = format_overrides(overrides, lambdas)
-        print(f'Sampled point: {json.dumps(processed_overrides, indent=2)}')
+        processed_overrides = format_overrides(overrides, lambdas, arg_overrides)
+        print(f'Sampled config: {json.dumps(processed_overrides, indent=2)}')
         override_str = json.dumps(processed_overrides, indent=None)
 
         # Run Allennlp train subprocess
