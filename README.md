@@ -1,4 +1,4 @@
-# allennlp-skopt
+# allenopt
 Bayesian hyperparameter search for models in [allennlp]() using [skopt]().
 
 
