@@ -202,10 +202,10 @@ def format_overrides(overrides, lambdas, arg_overrides):
 
     (Note: We actually do it twice since the lambdas use flattened keys)
     """
-    nested_overrides = with_fallback(cleanup_markup(unflatten(overrides)), arg_overrides)
+    nested_overrides = with_fallback(arg_overrides, cleanup_markup(unflatten(overrides)))
     for k,f in lambdas.items():
         overrides[k] = f(nested_overrides)
-    return with_fallback(cleanup_markup(unflatten(overrides)), arg_overrides)
+    return with_fallback(arg_overrides, cleanup_markup(unflatten(overrides)))
 
 
 def construct_trial_name(overrides, shorthands, trial_num):
